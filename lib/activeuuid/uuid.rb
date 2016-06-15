@@ -96,13 +96,35 @@ end
 module ActiveUUID
 
   module Instantiate
-    module ClassMethods
-      def instantiate(record, record_models = nil)
-        uuid_columns.each do |uuid_column|
-          record[uuid_column] = UUIDTools::UUID.serialize(record[uuid_column]).to_s if record[uuid_column]
-        end
-        super(record)
+    def natural_key(*attributes)
+      self._natural_key = attributes
+    end
+
+    def uuid_namespace(namespace)
+      namespace = UUIDTools::UUID.parse_string(namespace) unless namespace.is_a? UUIDTools::UUID
+      self._uuid_namespace = namespace
+    end
+
+    def uuid_generator(generator_name)
+      self._uuid_generator = generator_name
+    end
+
+    def uuids(*attributes)
+      ActiveSupport::Deprecation.warn <<-EOS
+          ActiveUUID detects uuid columns independently.
+          There is no more need to use uuid method.
+      EOS
+    end
+
+    def instantiate(record, record_models = nil)
+      uuid_columns.each do |uuid_column|
+        record[uuid_column] = UUIDTools::UUID.serialize(record[uuid_column]).to_s if record[uuid_column]
       end
+      super(record)
+    end
+
+    def uuid_columns
+      @uuid_columns ||= columns.select { |c| c.type == :uuid }.map(&:name)
     end
   end
   module UUID
@@ -119,38 +141,38 @@ module ActiveUUID
       before_create :generate_uuids_if_needed
     end
 
-    module ClassMethods
-      def natural_key(*attributes)
-        self._natural_key = attributes
-      end
+    # module ClassMethods
+    #   def natural_key(*attributes)
+    #     self._natural_key = attributes
+    #   end
 
-      def uuid_namespace(namespace)
-        namespace = UUIDTools::UUID.parse_string(namespace) unless namespace.is_a? UUIDTools::UUID
-        self._uuid_namespace = namespace
-      end
+    #   def uuid_namespace(namespace)
+    #     namespace = UUIDTools::UUID.parse_string(namespace) unless namespace.is_a? UUIDTools::UUID
+    #     self._uuid_namespace = namespace
+    #   end
 
-      def uuid_generator(generator_name)
-        self._uuid_generator = generator_name
-      end
+    #   def uuid_generator(generator_name)
+    #     self._uuid_generator = generator_name
+    #   end
 
-      def uuids(*attributes)
-        ActiveSupport::Deprecation.warn <<-EOS
-          ActiveUUID detects uuid columns independently.
-          There is no more need to use uuid method.
-        EOS
-      end
+    #   def uuids(*attributes)
+    #     ActiveSupport::Deprecation.warn <<-EOS
+    #       ActiveUUID detects uuid columns independently.
+    #       There is no more need to use uuid method.
+    #     EOS
+    #   end
 
-      def instantiate_with_uuid(record, record_models = nil)
-        uuid_columns.each do |uuid_column|
-          record[uuid_column] = UUIDTools::UUID.serialize(record[uuid_column]).to_s if record[uuid_column]
-        end
-        instantiate_without_uuid(record)
-      end
+    #   def instantiate_with_uuid(record, record_models = nil)
+    #     uuid_columns.each do |uuid_column|
+    #       record[uuid_column] = UUIDTools::UUID.serialize(record[uuid_column]).to_s if record[uuid_column]
+    #     end
+    #     instantiate_without_uuid(record)
+    #   end
 
-      def uuid_columns
-        @uuid_columns ||= columns.select { |c| c.type == :uuid }.map(&:name)
-      end
-    end
+    #   def uuid_columns
+    #     @uuid_columns ||= columns.select { |c| c.type == :uuid }.map(&:name)
+    #   end
+    # end
 
     def create_uuid
       if _natural_key

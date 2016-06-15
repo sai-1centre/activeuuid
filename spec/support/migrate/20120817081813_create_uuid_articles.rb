@@ -6,7 +6,7 @@ class CreateUuidArticles < ActiveRecord::Migration
       t.text :body
       t.uuid :another_uuid
 
-      t.timestamps
+      t.timestamps null: true
     end
   end
 end

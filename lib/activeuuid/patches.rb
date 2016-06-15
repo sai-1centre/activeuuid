@@ -71,19 +71,19 @@ module ActiveUUID
       def type_cast(value)
           return UUIDTools::UUID.serialize(value) if type == :uuid
           # type_cast_without_uuid(value)
-          super 
+          super(value)
         end
 
         def type_cast_code(var_name)
           return "UUIDTools::UUID.serialize(#{var_name})" if type == :uuid
           # type_cast_code_without_uuid(var_name)
-          super
+          super(var_name)
         end
 
         def simplified_type(field_type)
           return :uuid if field_type == 'binary(16)' || field_type == 'binary(16,0)'
           # simplified_type_without_uuid(field_type)
-          super
+          super(field_type)
         end
 
     end
@@ -115,21 +115,33 @@ module ActiveUUID
 
 
     module PostgreSQLColumn
-      extend ActiveSupport::Concern
+      # extend ActiveSupport::Concern
 
-      included do
-        def type_cast_with_uuid(value)
-          return UUIDTools::UUID.serialize(value) if type == :uuid
-          type_cast_without_uuid(value)
-        end
-        alias_method_chain :type_cast, :uuid if ActiveRecord::VERSION::MAJOR >= 4
+      # included do
+      #   def type_cast_with_uuid(value)
+      #     return UUIDTools::UUID.serialize(value) if type == :uuid
+      #     type_cast_without_uuid(value)
+      #   end
+      #   alias_method_chain :type_cast, :uuid if ActiveRecord::VERSION::MAJOR >= 4
 
-        def simplified_type_with_pguuid(field_type)
-          return :uuid if field_type == 'uuid'
-          simplified_type_without_pguuid(field_type)
-        end
+      #   def simplified_type_with_pguuid(field_type)
+      #     return :uuid if field_type == 'uuid'
+      #     simplified_type_without_pguuid(field_type)
+      #   end
 
-        alias_method_chain :simplified_type, :pguuid
+      #   alias_method_chain :simplified_type, :pguuid
+      # end
+      def type_cast(value)
+        return UUIDTools::UUID.serialize(value) if type == :uuid
+        # type_cast_without_uuid(value)
+        super(value)
+      end
+        #alias_method_chain :type_cast, :uuid if ActiveRecord::VERSION::MAJOR >= 4
+
+      def simplified_type(field_type)
+        return :uuid if field_type == 'uuid'
+        # simplified_type_without_pguuid(field_type)
+        super(field_type)
       end
     end
 
@@ -220,7 +232,7 @@ module ActiveUUID
         #  register_class_with_limit m, /binary\(16(,0)?\)/i, ::ActiveRecord::Type::UUID
         #end
         def initialize_type_map(m)
-          super
+          super(m)
           register_class_with_limit m, /binary\(16(,0)?\)/i, ::ActiveRecord::Type::UUID
         end
 
@@ -242,14 +254,14 @@ module ActiveUUID
         ActiveRecord::ConnectionAdapters::SQLite3Adapter.send :prepend, AbstractAdapter if defined? ActiveRecord::ConnectionAdapters::SQLite3Adapter
       else
         ActiveRecord::ConnectionAdapters::Column.send :prepend, Column
-        ActiveRecord::ConnectionAdapters::PostgreSQLColumn.send :include, PostgreSQLColumn if defined? ActiveRecord::ConnectionAdapters::PostgreSQLColumn
+        ActiveRecord::ConnectionAdapters::PostgreSQLColumn.send :prepend, PostgreSQLColumn if defined? ActiveRecord::ConnectionAdapters::PostgreSQLColumn
       end
       ArJdbc::MySQL::Column.send :include, MysqlJdbcColumn if defined? ArJdbc::MySQL::Column
 
       ActiveRecord::ConnectionAdapters::MysqlAdapter.send :prepend, Quoting if defined? ActiveRecord::ConnectionAdapters::MysqlAdapter
       ActiveRecord::ConnectionAdapters::Mysql2Adapter.send :prepend, Quoting if defined? ActiveRecord::ConnectionAdapters::Mysql2Adapter
       ActiveRecord::ConnectionAdapters::SQLite3Adapter.send :prepend, Quoting if defined? ActiveRecord::ConnectionAdapters::SQLite3Adapter
-      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :include, PostgreSQLQuoting if defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
+      ActiveRecord::ConnectionAdapters::PostgreSQLAdapter.send :prepend, PostgreSQLQuoting if defined? ActiveRecord::ConnectionAdapters::PostgreSQLAdapter
     end
   end
 end
