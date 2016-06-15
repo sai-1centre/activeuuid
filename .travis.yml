@@ -3,10 +3,10 @@ before_script:
   - psql -c 'create database activeuuid_test;' -U postgres
 
 rvm:
-  - 1.9.3
   - 2.0.0
   - 2.1.5
   - 2.2.0
+  - 2.3.0
   - rbx-2
   - jruby
 
@@ -17,6 +17,7 @@ gemfile:
   - gemfiles/Gemfile.rails-4-0
   - gemfiles/Gemfile.rails-4-1
   - gemfiles/Gemfile.rails-4-2
+  - gemfiles/Gemfile.rails-5-0 
   - gemfiles/Gemfile.rails-head
 
 env:

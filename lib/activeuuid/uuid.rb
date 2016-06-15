@@ -94,6 +94,17 @@ module Arel
 end
 
 module ActiveUUID
+
+  module Instantiate
+    module ClassMethods
+      def instantiate(record, record_models = nil)
+        uuid_columns.each do |uuid_column|
+          record[uuid_column] = UUIDTools::UUID.serialize(record[uuid_column]).to_s if record[uuid_column]
+        end
+        super(record)
+      end
+    end
+  end
   module UUID
     extend ActiveSupport::Concern
 
@@ -103,7 +114,8 @@ module ActiveUUID
       class_attribute :_uuid_generator, instance_writer: false
       self._uuid_generator = :random
 
-      singleton_class.alias_method_chain :instantiate, :uuid
+      # singleton_class.alias_method_chain :instantiate, :uuid
+      singleton_class.send :prepend, Instantiate
       before_create :generate_uuids_if_needed
     end
 
