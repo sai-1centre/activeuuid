@@ -159,13 +159,13 @@ module ActiveUUID
       #     type_cast_without_visiting(value, column)
       #   end
 
-      #   def native_database_types_with_uuid
-      #     @native_database_types ||= native_database_types_without_uuid.merge(uuid: { name: 'binary', limit: 16 })
-      #   end
+        # def native_database_types_with_uuid
+        #   @native_database_types ||= native_database_types_without_uuid.merge(uuid: { name: 'binary', limit: 16 })
+        # end
 
       #   alias_method_chain :quote, :visiting
       #   alias_method_chain :type_cast, :visiting
-      #   alias_method_chain :native_database_types, :uuid
+        # alias_method_chain :native_database_types, :uuid
       # end
         def quote(value, column = nil)
           value = UUIDTools::UUID.serialize(value) if column && column.type == :uuid
@@ -177,7 +177,7 @@ module ActiveUUID
           super(value, column)
         end
 
-        def native_database_types_with_uuid
+        def native_database_types
           @native_database_types ||= super.merge(uuid: { name: 'binary', limit: 16 })
         end
     end
@@ -224,20 +224,21 @@ module ActiveUUID
     end
 
     module AbstractAdapter
-      #extend ActiveSupport::Concern
+      # extend ActiveSupport::Concern
 
-      #included do
-        #def initialize_type_map_with_uuid(m)
-        #  initialize_type_map_without_uuid(m)
-        #  register_class_with_limit m, /binary\(16(,0)?\)/i, ::ActiveRecord::Type::UUID
-        #end
-        def initialize_type_map(m)
-          super(m)
-          register_class_with_limit m, /binary\(16(,0)?\)/i, ::ActiveRecord::Type::UUID
-        end
+      # included do
+      #   def initialize_type_map_with_uuid(m)
+      #    initialize_type_map_without_uuid(m)
+      #    register_class_with_limit m, /binary\(16(,0)?\)/i, ::ActiveRecord::Type::UUID
+      #   end
+        
 
       #  alias_method_chain :initialize_type_map, :uuid
-      #end
+      # end
+      def initialize_type_map(m)
+        super(m)
+        register_class_with_limit m, /binary\(16(,0)?\)/i, ::ActiveRecord::Type::UUID
+      end
     end
 
     def self.apply!
@@ -246,8 +247,8 @@ module ActiveUUID
       require 'active_record/connection_adapters/sqlite3_adapter' if Gem.loaded_specs.has_key? 'sqlite3'
       require 'active_record/connection_adapters/postgresql_adapter' if Gem.loaded_specs.has_key? 'pg'
       
-      ActiveRecord::ConnectionAdapters::Table.send :include, Migrations if defined? ActiveRecord::ConnectionAdapters::Table
-      ActiveRecord::ConnectionAdapters::TableDefinition.send :include, Migrations if defined? ActiveRecord::ConnectionAdapters::TableDefinition
+      ActiveRecord::ConnectionAdapters::Table.send :prepend, Migrations if defined? ActiveRecord::ConnectionAdapters::Table
+      ActiveRecord::ConnectionAdapters::TableDefinition.send :prepend, Migrations if defined? ActiveRecord::ConnectionAdapters::TableDefinition
 
       if ActiveRecord::VERSION::MAJOR == 4 and ActiveRecord::VERSION::MINOR == 2 or ActiveRecord::VERSION::MAJOR == 5
         ActiveRecord::ConnectionAdapters::Mysql2Adapter.send :prepend, AbstractAdapter if defined? ActiveRecord::ConnectionAdapters::Mysql2Adapter
