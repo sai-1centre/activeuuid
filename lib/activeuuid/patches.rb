@@ -12,6 +12,10 @@ if ActiveRecord::VERSION::MAJOR == 4 and ActiveRecord::VERSION::MINOR == 2 or Ac
         def cast_value(value)
           UUIDTools::UUID.serialize(value)
         end
+
+        def serialize(value)
+          UUIDTools::UUID.serialize(value)
+        end
       end
     end
   end
