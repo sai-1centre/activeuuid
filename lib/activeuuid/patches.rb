@@ -213,7 +213,7 @@ module ActiveUUID
         def quote(value, column = nil)
           value = UUIDTools::UUID.serialize(value) if column && column.type == :uuid
           value = value.to_s if value.is_a? UUIDTools::UUID
-          super(value, column)
+          super(value)
         end
 
         def type_cast(value, column = nil, *args)
