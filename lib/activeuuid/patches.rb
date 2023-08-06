@@ -219,7 +219,9 @@ module ActiveUUID
         def type_cast(value, column = nil, *args)
           value = UUIDTools::UUID.serialize(value) if column && column.type == :uuid
           value = value.to_s if value.is_a? UUIDTools::UUID
-          super(value, column, *args)
+          # NOTE: commenting the below line and going with value param only because this line is crashing Activerecord 7.0.x queries
+          # super(value, column, *args)
+          super(value)
         end
 
         def native_database_types
